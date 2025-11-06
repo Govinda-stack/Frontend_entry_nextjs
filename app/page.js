@@ -1,16 +1,53 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function HomePage() {
   const [index, setIndex] = useState(0);
   const [errors, setErrors] = useState({ name: '', email: '', message: '' });
+  const [paused, setPaused] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const startXRef = useRef(0);
+  const draggedRef = useRef(false);
+  const sliderRef = useRef(null);
 
   const dots = useMemo(() => [0, 1, 2, 3], []);
 
-  const translate = { transform: `translateX(-${index * 430}px)` };
+  const SLIDE_W = 430; // card width + gap
+  const translate = { transform: `translateX(-${index * SLIDE_W}px)` };
+
+  useEffect(() => {
+    if (paused) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % dots.length), 3000);
+    return () => clearInterval(id);
+  }, [paused, dots.length]);
+
+  const onPointerDown = (e) => {
+    setDragging(true);
+    draggedRef.current = false;
+    startXRef.current = 'touches' in e ? e.touches[0].clientX : e.clientX;
+  };
+
+  const onPointerMove = (e) => {
+    if (!dragging) return;
+    const currentX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const dx = currentX - startXRef.current;
+    if (Math.abs(dx) > 50 && !draggedRef.current) {
+      draggedRef.current = true;
+      if (dx < 0) {
+        setIndex((i) => (i + 1) % dots.length);
+      } else {
+        setIndex((i) => (i - 1 + dots.length) % dots.length);
+      }
+    }
+  };
+
+  const onPointerUp = () => {
+    setDragging(false);
+    draggedRef.current = false;
+  };
 
   const validateField = (field, value) => {
     let msg = '';
@@ -55,9 +92,9 @@ export default function HomePage() {
           <div className="logo">IWMYWIF</div>
           <nav className="navbar">
             <ul>
-              <li><a href="#section1">Home</a></li>
-              <li><a href="#section2">About Me</a></li>
-              <li><a href="#section3">Works</a></li>
+              <li><a href="#">Home</a></li>
+              <li><a href="#about">About Me</a></li>
+              <li><a href="#works">Works</a></li>
               <li><a href="#section4">Blog</a></li>
               <li>
                 <a href="#contact">
@@ -190,10 +227,21 @@ export default function HomePage() {
       <section className="testimonials-section" id="testimonials">
         <h2>What my clients say</h2>
 
-        <div className="testimonials-slider">
+        <div
+          className="testimonials-slider"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onMouseDown={onPointerDown}
+          onMouseMove={onPointerMove}
+          onMouseUp={onPointerUp}
+          onTouchStart={onPointerDown}
+          onTouchMove={onPointerMove}
+          onTouchEnd={onPointerUp}
+          ref={sliderRef}
+        >
           <button className="nav-btn prev" onClick={() => setIndex((i) => (i - 1 + dots.length) % dots.length)}>&#10094;</button>
 
-          <div className="testimonial-track" style={translate}>
+          <div className={`testimonial-track${dragging ? ' dragging' : ''}`} style={translate}>
             <div className="testimonial-card">
               <div className="client-info">
                 <img src="/images/client1.png" alt="Charles Dim" />
@@ -281,20 +329,20 @@ export default function HomePage() {
         <h2>Tell me about your project</h2>
         <div className="underline"></div>
 
-        <form className="contact-form" onSubmit={onSubmit}>
+        <form className="contact-form" onSubmit={onSubmit} noValidate>
           <div className="form-row">
             <div style={{ flex: 1, minWidth: 250 }}>
-              <input type="text" id="name" name="name" placeholder="Name" onBlur={onBlur} required />
+              <input type="text" id="name" name="name" placeholder="Name" onBlur={onBlur} />
               {errors.name && <span className="error-text">{errors.name}</span>}
             </div>
             <div style={{ flex: 1, minWidth: 250 }}>
-              <input type="email" id="email" name="email" placeholder="Email Address" onBlur={onBlur} required />
+              <input type="email" id="email" name="email" placeholder="Email Address" onBlur={onBlur} />
               {errors.email && <span className="error-text">{errors.email}</span>}
             </div>
           </div>
 
           <div>
-            <textarea id="message" name="message" placeholder="Message description" rows={5} onBlur={onBlur} required></textarea>
+            <textarea id="message" name="message" placeholder="Message description" rows={5} onBlur={onBlur}></textarea>
             {errors.message && <span className="error-text">{errors.message}</span>}
           </div>
 
@@ -326,7 +374,7 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-      <ToastContainer position="top-right" theme="dark" autoClose={2500} />
+      <ToastContainer position="top-center" theme="dark" autoClose={2500} />
     </>
   );
 }

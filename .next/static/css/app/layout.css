@@ -14,6 +14,16 @@ body {
   background-color: #f4f4f4;
 }
 
+/* Smooth scroll for in-page anchors */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure sections aren't hidden under sticky header when scrolled into view */
+section {
+  scroll-margin-top: 80px;
+}
+
 .main-header {
   background-color: #3f5c82;
   padding: 15px 50px;

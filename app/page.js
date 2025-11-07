@@ -13,16 +13,43 @@ export default function HomePage() {
   const draggedRef = useRef(false);
   const sliderRef = useRef(null);
 
-  const dots = useMemo(() => [0, 1, 2, 3], []);
-
-  const SLIDE_W = 430; // card width + gap
-  const translate = { transform: `translateX(-${index * SLIDE_W}px)` };
+  const CARD_W = 400; // matches .testimonial-card width in CSS
+  const GAP = 30; // matches .testimonial-track gap in CSS
+  const TOTAL_CARDS = 4;
+  const [itemsPerPage, setItemsPerPage] = useState(2);
+  const VIEW_W = CARD_W * itemsPerPage + GAP * (itemsPerPage - 1); // visible width
+  const STEP_W = itemsPerPage * (CARD_W + GAP); // step between page starts
+  const pages = useMemo(() => Math.ceil(TOTAL_CARDS / itemsPerPage), [itemsPerPage]);
+  const dots = useMemo(() => Array.from({ length: pages }, (_, i) => i), [pages]);
+  const translate = { transform: `translateX(-${index * STEP_W}px)` };
 
   useEffect(() => {
     if (paused) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % dots.length), 3000);
     return () => clearInterval(id);
   }, [paused, dots.length]);
+
+  useEffect(() => {
+    const update = () => {
+      const el = sliderRef.current;
+      if (!el) return;
+      const w = el.clientWidth;
+      // If viewport can't fit two cards + gap, show 1 per page
+      if (w < CARD_W * 2 + GAP) {
+        setItemsPerPage(1);
+      } else {
+        setItemsPerPage(2);
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  useEffect(() => {
+    // clamp index if pages reduced
+    setIndex((i) => Math.min(i, Math.max(0, pages - 1)));
+  }, [pages]);
 
   const onPointerDown = (e) => {
     setDragging(true);
@@ -92,10 +119,18 @@ export default function HomePage() {
           <div className="logo">IWMYWIF</div>
           <nav className="navbar">
             <ul>
-              <li><a href="#">Home</a></li>
-              <li><a href="#about">About Me</a></li>
-              <li><a href="#works">Works</a></li>
-              <li><a href="#section4">Blog</a></li>
+              <li>
+                <a href="#">Home</a>
+              </li>
+              <li>
+                <a href="#about">About Me</a>
+              </li>
+              <li>
+                <a href="#works">Works</a>
+              </li>
+              <li>
+                <a href="#section4">Blog</a>
+              </li>
               <li>
                 <a href="#contact">
                   <button className="contact-btn">Get in Touch</button>
@@ -113,11 +148,13 @@ export default function HomePage() {
             in <span className="highlight">less than 12 days</span>
           </h1>
           <p>
-            Hey, I’m Mark Es, a web developer with 7 years of experience building
-            responsive websites and applications. I can build a high-converting
-            website for you as quick as possible!
+            Hey, I’m Mark Es, a web developer with 7 years of experience
+            building responsive websites and applications. I can build a
+            high-converting website for you as quick as possible!
           </p>
-          <a href="#contact" className="hero-btn">Get in Touch</a>
+          <a href="#contact" className="hero-btn">
+            Get in Touch
+          </a>
         </div>
 
         <div className="hero-image">
@@ -128,19 +165,17 @@ export default function HomePage() {
       <section className="about-section" id="about">
         <div className="about-container">
           <div className="about-icons">
-            <img src="/images/html-icon.png" alt="HTML" />
-            <img src="/images/css-icon.png" alt="CSS" />
-            <img src="/images/react-icon.png" alt="React" />
-            <img src="/images/vue-icon.png" alt="Vue" />
-            <img src="/images/js-icon.png" alt="JavaScript" />
+            <div class="iconss">
+              <img src="/images/Group 27.png" alt="CSS" />
+            </div>
           </div>
 
           <div className="about-content">
             <h2>About Me</h2>
             <p>
-              My passion for building websites started in 2013, and since then I have
-              helped companies around the world build amazing websites and products
-              that create real value for businesses and users.
+              My passion for building websites started in 2013, and since then I
+              have helped companies around the world build amazing websites and
+              products that create real value for businesses and users.
             </p>
             <p>
               I enjoy solving problems with clean, scalable solutions and have a
@@ -148,8 +183,8 @@ export default function HomePage() {
             </p>
             <p>
               I am a full-stack developer focusing on core frontend and backend
-              technologies which include HTML, CSS, JavaScript, React, and other core
-              languages.
+              technologies which include HTML, CSS, JavaScript, React, and other
+              core languages.
             </p>
           </div>
         </div>
@@ -220,7 +255,9 @@ export default function HomePage() {
             </div>
           </div>
 
-          <a href="#more" className="see-more-btn">See More</a>
+          <a href="#more" className="see-more-btn">
+            See More
+          </a>
         </div>
       </section>
 
@@ -229,6 +266,7 @@ export default function HomePage() {
 
         <div
           className="testimonials-slider"
+          style={{ width: VIEW_W, margin: '0 auto' }}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onMouseDown={onPointerDown}
@@ -239,9 +277,17 @@ export default function HomePage() {
           onTouchEnd={onPointerUp}
           ref={sliderRef}
         >
-          <button className="nav-btn prev" onClick={() => setIndex((i) => (i - 1 + dots.length) % dots.length)}>&#10094;</button>
+          <button
+            className="nav-btn prev"
+            onClick={() => setIndex((i) => (i - 1 + dots.length) % dots.length)}
+          >
+            &#10094;
+          </button>
 
-          <div className={`testimonial-track${dragging ? ' dragging' : ''}`} style={translate}>
+          <div
+            className={`testimonial-track${dragging ? " dragging" : ""}`}
+            style={translate}
+          >
             <div className="testimonial-card">
               <div className="client-info">
                 <img src="/images/client1.png" alt="Charles Dim" />
@@ -253,9 +299,9 @@ export default function HomePage() {
               </div>
               <p className="testimonial-text">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-                tincidunt in malesuada tristique arcu non eu lectus orci. Amet non,
-                sed eget ultrices cursus diam orci. Risus sed tristique lectus fusce
-                lacus.
+                tincidunt in malesuada tristique arcu non eu lectus orci. Amet
+                non, sed eget ultrices cursus diam orci. Risus sed tristique
+                lectus fusce lacus.
               </p>
             </div>
 
@@ -270,9 +316,9 @@ export default function HomePage() {
               </div>
               <p className="testimonial-text">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-                tincidunt in malesuada tristique arcu non eu lectus orci. Amet non,
-                sed eget ultrices cursus diam orci. Risus sed tristique lectus fusce
-                lacus.
+                tincidunt in malesuada tristique arcu non eu lectus orci. Amet
+                non, sed eget ultrices cursus diam orci. Risus sed tristique
+                lectus fusce lacus.
               </p>
             </div>
 
@@ -287,9 +333,9 @@ export default function HomePage() {
               </div>
               <p className="testimonial-text">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-                tincidunt in malesuada tristique arcu non eu lectus orci. Amet non,
-                sed eget ultrices cursus diam orci. Risus sed tristique lectus fusce
-                lacus.
+                tincidunt in malesuada tristique arcu non eu lectus orci. Amet
+                non, sed eget ultrices cursus diam orci. Risus sed tristique
+                lectus fusce lacus.
               </p>
             </div>
 
@@ -304,21 +350,26 @@ export default function HomePage() {
               </div>
               <p className="testimonial-text">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-                tincidunt in malesuada tristique arcu non eu lectus orci. Amet non,
-                sed eget ultrices cursus diam orci. Risus sed tristique lectus fusce
-                lacus.
+                tincidunt in malesuada tristique arcu non eu lectus orci. Amet
+                non, sed eget ultrices cursus diam orci. Risus sed tristique
+                lectus fusce lacus.
               </p>
             </div>
           </div>
 
-          <button className="nav-btn next" onClick={() => setIndex((i) => (i + 1) % dots.length)}>&#10095;</button>
+          <button
+            className="nav-btn next"
+            onClick={() => setIndex((i) => (i + 1) % dots.length)}
+          >
+            &#10095;
+          </button>
         </div>
 
         <div className="slider-dots">
           {dots.map((d) => (
             <span
               key={d}
-              className={`dot${index === d ? ' active' : ''}`}
+              className={`dot${index === d ? " active" : ""}`}
               onClick={() => setIndex(d)}
             />
           ))}
@@ -332,21 +383,46 @@ export default function HomePage() {
         <form className="contact-form" onSubmit={onSubmit} noValidate>
           <div className="form-row">
             <div style={{ flex: 1, minWidth: 250 }}>
-              <input type="text" id="name" name="name" placeholder="Name" onBlur={onBlur} />
+              <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Name"
+                onBlur={onBlur}
+              />
               {errors.name && <span className="error-text">{errors.name}</span>}
             </div>
             <div style={{ flex: 1, minWidth: 250 }}>
-              <input type="email" id="email" name="email" placeholder="Email Address" onBlur={onBlur} />
-              {errors.email && <span className="error-text">{errors.email}</span>}
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Email Address"
+                onBlur={onBlur}
+              />
+              {errors.email && (
+                <span className="error-text">{errors.email}</span>
+              )}
             </div>
           </div>
-
+          <div className="form-rowss">
           <div>
-            <textarea id="message" name="message" placeholder="Message description" rows={5} onBlur={onBlur}></textarea>
-            {errors.message && <span className="error-text">{errors.message}</span>}
+            <textarea
+              id="message"
+              name="message"
+              placeholder="Message description"
+              rows={5}
+              onBlur={onBlur}
+            ></textarea>
+            {errors.message && (
+              <span className="error-text">{errors.message}</span>
+            )}
           </div>
 
-          <button type="submit" className="btn-send">Send</button>
+          <button type="submit" className="btn-send">
+            Send
+          </button>
+          </div>
         </form>
       </section>
 

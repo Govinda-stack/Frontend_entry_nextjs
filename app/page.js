@@ -406,7 +406,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="form-rowss">
-          <div>
+          <div className='forms-descriptionn'>
             <textarea
               id="message"
               name="message"

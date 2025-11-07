@@ -950,3 +950,6 @@ body {
     flex-direction: column;
     gap: 10px;
 }
+.forms-descriptionn {
+    width: 100%;
+}
